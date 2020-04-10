@@ -2,8 +2,12 @@ from collections import defaultdict
 
 class TrieNode:
     def __init__(self):
-        self.node = defaultdict(TrieNode)
-        self.word = ""
+        self.nodes = defaultdict(TrieNode)
+        # number of words with this prefix
+        self.num_prefixes = 0
+        # number of words ending at this node
+        self.num_words = 0
+
 
 class Trie:
     def __init__(self):
@@ -11,43 +15,36 @@ class Trie:
     
     def insert(self, word):
         current = self.root
+        current.num_prefixes += 1 # for the root node
         for c in word:
-            if not current.node[c]:
-                current.node[c] = TrieNode()
-            current = current.node[c]
-        current.word = word
+            if not current.nodes[c]:
+                current.nodes[c] = TrieNode()
+            current = current.nodes[c]
+            current.num_prefixes += 1
+        current.num_words += 1
 
-    def _prefix_helper(self, node, count):
-        # if branch out or reach the end of a trie branch
-        if len(node.node) > 1 or len(node.node) == 0:
-            return count
-        for c, n in node.node.items():
-            count += 1
-            return self._prefix_helper(n, count)
 
-    def prefix_length(self):
-        current = self.root
-        count = 0
-        return self._prefix_helper(current, count)
-
+def recurse(root, group_size, length):
+    if root.num_prefixes < group_size:
+        return 0
+    here = root.num_words
+    ans = 0
+    for c, node in root.nodes.items():
+        ans += recurse(node, group_size, length+1)
+        here += node.num_prefixes % group_size
+    ans += (here // group_size) * length
+    return ans
 
 
 def solve():
     # N = num strings, K = group size
     N, K = map(int, input().split(" "))
-    strs = []
+    trie = Trie()
     for i in range(N):
-        strs.append(input())
-    strs.sort()
-    j = 0
-    ans = 0
-    while j < N:
-        trie = Trie()
-        for k in range(K):
-            trie.insert(strs[j+k])
-        ans += trie.prefix_length()
-        j += K
-    return "{}".format(ans)
+        s = input()
+        trie.insert(s)
+    return "{}".format(recurse(trie.root, K, 0))
+    
 
 t = int(input())
 for c in range(t):
