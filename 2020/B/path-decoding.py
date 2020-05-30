@@ -1,48 +1,47 @@
-def decode(s):
-    stack = []
-    for i in range(len(s)):
-        if s[i] != "(" and s[i] != ")":
-            stack.append(s[i])
-        elif s[i] == ")":
-            tmp = ""
-            while not stack[-1].isdigit():
-                tmp = stack.pop() + tmp # prepend
-            d = int(stack.pop())
-            tmp = d * tmp
-            stack.append(tmp)
-    return "".join(stack)
 
 
 def solve():
-    instructions = decode(input())
-    current = [1, 1] # (col, row)
-    ROWS = COLS = 10**9
-    for c in instructions:
-        if c == "N":
-            current[1] += -1
-        elif c == "S":
-            current[1] += 1
-        elif c == "W":
-            current[0] += -1
-        else:
-            current[0] += 1
-        
-        if current[0] > COLS:
-            current[0] = 1
-        elif current[0] < 1:
-            current[0] = COLS
-        
-        if current[1] > ROWS:
-            current[1] = 1
-        elif current[1] < 1:
-            current[1] = ROWS
-    return "{} {}".format(current[0], current[1])
+    s = input()
+    ptr = [0]
+    M = 10**9
+
+    def helper(ptr):
+        r = [0, 0] # col ,row
+        while ptr[0] < len(s):
+            if s[ptr[0]] == ")":
+                ptr[0] += 1
+                break
+            elif s[ptr[0]] == "N":
+                r[1] += -1
+                if r[1] < 0:
+                    r[1] += M
+                ptr[0] += 1
+            elif s[ptr[0]] == "S":
+                r[1] += 1
+                if r[1] >= M:
+                    r[1] -= M
+                ptr[0] += 1
+            elif s[ptr[0]] == "W":
+                r[0] += -1
+                if r[0] < 0:
+                    r[0] += M
+                ptr[0] += 1
+            elif s[ptr[0]] == "E":
+                r[0] += 1
+                if r[0] >= M:
+                    r[0] -= M
+                ptr[0] += 1
+            else:
+                d = int(s[ptr[0]])
+                ptr[0] += 2
+                b = helper(ptr)
+                r[0] = (r[0] + d*b[0]) % M
+                r[1] = (r[1] + d*b[1]) % M
+        return r
+
+    ans = helper(ptr)
+    return "{} {}".format(ans[0]+1, ans[1]+1)
             
-    
-
-
-
-
 T = int(input())
 for c in range(T):
     print("Case #{}: {}".format(c+1, solve()))
